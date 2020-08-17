@@ -237,3 +237,13 @@
     - type: shell
       directory: build
       file-name-prefix: __
+- name: java-versions
+  constants:
+    jdk-version: 11.0.8
+  outputs:
+    - type: csharp
+      directory: src/BuildScriptGenerator/Java
+      namespace: Microsoft.Oryx.BuildScriptGenerator.Java
+    - type: shell
+      directory: build
+      file-name-prefix: __
