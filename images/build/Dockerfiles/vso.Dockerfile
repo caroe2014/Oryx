@@ -35,10 +35,10 @@ RUN set -eux \
     && condaDir="/opt/oryx/conda" \
     && mkdir -p "$condaDir" \
     && cd $imagesDir/build/python/conda \
-    && cp -rf * "$condaDir"
-
+    && cp -rf * "$condaDir" \
     #------------------- Install Java SDK -----------------------
-RUN apt-get update \
+    && . $buildDir/__javaVersions.sh \
+    && apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		bzip2 \
 		unzip \
@@ -72,9 +72,9 @@ RUN apt-get update \
     # this "case" statement is generated via "update.sh"
 	&& case "$arch" in \
     # arm64v8
-		arm64 | aarch64) downloadUrl=https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_aarch64_linux_11.0.8_10.tar.gz ;; \
+		arm64 | aarch64) downloadUrl=https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/download/jdk-${JDK_VERSION}%2B${JDK_BUILD}/OpenJDK11U-jdk_aarch64_linux_${JDK_VERSION}_${JDK_BUILD}.tar.gz ;; \
     # amd64
-		amd64 | i386:x86-64) downloadUrl=https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_x64_linux_11.0.8_10.tar.gz ;; \
+		amd64 | i386:x86-64) downloadUrl=https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/download/jdk-${JDK_VERSION}%2B${JDK_BUILD}/OpenJDK11U-jdk_x64_linux_${JDK_VERSION}_${JDK_BUILD}.tar.gz ;; \
     # fallback
 		*) echo >&2 "error: unsupported architecture: '$arch'"; exit 1 ;; \
 	esac \
@@ -111,7 +111,7 @@ RUN apt-get update \
     #     https://git.alpinelinux.org/aports/tree/community/java-cacerts/APKBUILD?id=761af65f38b4570093461e6546dcf6b179d2b624#n29
 	&& { \
 		echo '#!/usr/bin/env bash'; \
-		echo 'set -Eeuo pipefail'; \
+		echo 'set -xEeuo pipefail'; \
 		echo 'if ! [ -d "$JAVA_HOME" ]; then echo >&2 "error: missing JAVA_HOME environment variable"; exit 1; fi'; \
     # 8-jdk uses "$JAVA_HOME/jre/lib/security/cacerts" and 8-jre and 11+ uses "$JAVA_HOME/lib/security/cacerts" directly (no "jre" directory)
 		echo 'cacertsFile=; for f in "$JAVA_HOME/lib/security/cacerts" "$JAVA_HOME/jre/lib/security/cacerts"; do if [ -e "$f" ]; then cacertsFile="$f"; break; fi; done'; \

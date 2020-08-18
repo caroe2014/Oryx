@@ -239,7 +239,9 @@
       file-name-prefix: __
 - name: java-versions
   constants:
+    # Example: jdk-11.0.8+10
     jdk-version: 11.0.8
+    jdk-build: 10
   outputs:
     - type: csharp
       directory: src/BuildScriptGenerator/Java

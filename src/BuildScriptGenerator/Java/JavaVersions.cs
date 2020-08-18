@@ -5,5 +5,6 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Java
     public static class JavaVersions
     {
         public const string JdkVersion = "11.0.8";
+        public const string JdkBuild = "10";
     }
 }
