@@ -35,17 +35,17 @@ RUN set -eux \
     && condaDir="/opt/oryx/conda" \
     && mkdir -p "$condaDir" \
     && cd $imagesDir/build/python/conda \
-    && cp -rf * "$condaDir" \
+    && cp -rf * "$condaDir"
+
     #------------------- Install Java SDK -----------------------
-    && . $buildDir/__condaConstants.sh \
-    && apt-get update \
+RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		bzip2 \
 		unzip \
 		xz-utils \
 		\
         # utilities for keeping Debian and OpenJDK CA certificates in sync
-		ca-certificates p11-kit \
+		p11-kit \
 		\
         # java.lang.UnsatisfiedLinkError: /usr/local/openjdk-11/lib/libfontmanager.so: libfreetype.so.6: cannot open shared object file: No such file or directory
         # java.lang.NoClassDefFoundError: Could not initialize class sun.awt.X11FontManager
