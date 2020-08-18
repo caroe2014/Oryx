@@ -37,6 +37,5 @@ RUN set -eux \
     && cd $imagesDir/build/python/conda \
     && cp -rf * "$condaDir" \
     #------------------- Install Java SDK -----------------------
-    && . $buildDir/__javaVersions.sh \
     && $imagesDir/build/installJavaSDK.sh \
     && rm -rf /opt/tmp

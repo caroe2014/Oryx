@@ -2,6 +2,8 @@
 
 set -ex
 
+source /opt/tmp/build/__javaVersions.sh
+
 apt-get update
 apt-get install -y --no-install-recommends \
     bzip2 \
@@ -56,7 +58,7 @@ gpg --batch --keyserver ha.pool.sks-keyservers.net --keyserver-options no-self-s
 # also verify that key was signed by Andrew Haley (the OpenJDK 8 and 11 Updates OpenJDK project lead)
 # (https://github.com/docker-library/openjdk/pull/322#discussion_r286839190)
 gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys EAC843EBD3EFDB98CC772FADA5CD6035332FA671
-gpg --batch --list-sigs --keyid-format 0xLONG CA5F11C6CE22644D42C6AC4492EF8D39DC13168F
+gpg --batch --list-sigs --keyid-format 0xLONG CA5F11C6CE22644D42C6AC4492EF8D39DC13168F \
     | tee /dev/stderr \
     | grep '0xA5CD6035332FA671' \
     | grep 'Andrew Haley'
@@ -95,5 +97,5 @@ find "$JAVA_HOME/lib" -name '*.so' -exec dirname '{}' ';' | sort -u > /etc/ld.so
 ldconfig
 
 # basic smoke test
-javac --version \
-java --version \
+javac --version
+java --version
