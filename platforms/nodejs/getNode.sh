@@ -42,6 +42,7 @@ getNode() {
 getYarn() {
 	local version="$1"
 
+	local hostDir="$hostNodeArtifactsDir/yarn"
 	if shouldBuildSdk yarn yarn-$version.tar.gz || shouldOverwriteSdk || shouldOverwriteYarnSdk; then
 		echo "Getting Yarn version '$version'..."
 		echo
@@ -55,11 +56,11 @@ getYarn() {
 		fi
 
 		docker run \
-			-v $hostNodeArtifactsDir:$volumeContainerDir \
+			-v $hostDir:$volumeContainerDir \
 			$imageName \
-			bash -c "/tmp/scripts/build.sh $version && cp -f /tmp/compressedSdk/* /tmp/sdk"
+			bash -c "/tmp/scripts/getYarn.sh $version && cp -f /tmp/compressedSdk/yarn/* /tmp/sdk"
 		
-		echo "Version=$version" >> "$hostNodeArtifactsDir/nodejs-$version-metadata.txt"
+		echo "Version=$version" >> "$hostNodeArtifactsDir/yarn-$version-metadata.txt"
 	fi
 }
 
@@ -83,5 +84,11 @@ echo "Getting Node Sdk..."
 echo
 buildPlatform "$nodePlatformDir/versionsToBuild.txt" getNode
 
+echo "Getting Yarn..."
+echo
+buildPlatform "$nodePlatformDir/yarn/versionsToBuild.txt" getYarn
+
 # Write the default version
 cp "$nodePlatformDir/defaultVersion.txt" $hostNodeArtifactsDir
+cp "$nodePlatformDir/yarn/defaultVersion.txt" "$hostNodeArtifactsDir/yarn"
+
