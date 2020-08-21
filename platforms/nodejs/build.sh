@@ -13,6 +13,7 @@ source $REPO_DIR/platforms/__common.sh
 nodePlatformDir="$REPO_DIR/platforms/nodejs"
 hostNodeArtifactsDir="$volumeHostDir/nodejs"
 mkdir -p "$hostNodeArtifactsDir"
+mkdir -p "$hostNodeArtifactsDir/yarn"
 
 builtNodeImage=false
 buildNodeImage() {
