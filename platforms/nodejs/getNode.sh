@@ -39,8 +39,40 @@ getNode() {
 	fi
 }
 
+getYarn() {
+	local version="$1"
+
+	if shouldBuildSdk yarn yarn-$version.tar.gz || shouldOverwriteSdk || shouldOverwriteYarnSdk; then
+		echo "Getting Yarn version '$version'..."
+		echo
+
+		if ! $builtNodeImage; then
+			docker build \
+				-f "$nodePlatformDir/Dockerfile" \
+				-t $imageName \
+				$REPO_DIR
+			builtNodeImage=true
+		fi
+
+		docker run \
+			-v $hostNodeArtifactsDir:$volumeContainerDir \
+			$imageName \
+			bash -c "/tmp/scripts/build.sh $version && cp -f /tmp/compressedSdk/* /tmp/sdk"
+		
+		echo "Version=$version" >> "$hostNodeArtifactsDir/nodejs-$version-metadata.txt"
+	fi
+}
+
 shouldOverwriteNodeSdk() {
 	if [ "$OVERWRITE_EXISTING_SDKS_NODE" == "true" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+shouldOverwriteYarnSdk() {
+	if [ "$OVERWRITE_EXISTING_SDKS_YARN" == "true" ]; then
 		return 0
 	else
 		return 1
