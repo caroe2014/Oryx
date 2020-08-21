@@ -15,6 +15,16 @@ hostNodeArtifactsDir="$volumeHostDir/nodejs"
 mkdir -p "$hostNodeArtifactsDir"
 
 builtNodeImage=false
+buildNodeImage() {
+	if ! $builtNodeImage; then
+		docker build \
+			-f "$nodePlatformDir/Dockerfile" \
+			-t $imageName \
+			$REPO_DIR
+		builtNodeImage=true
+	fi
+}
+
 getNode() {
 	local version="$1"
 
@@ -22,13 +32,7 @@ getNode() {
 		echo "Getting Node version '$version'..."
 		echo
 
-		if ! $builtNodeImage; then
-			docker build \
-				-f "$nodePlatformDir/Dockerfile" \
-				-t $imageName \
-				$REPO_DIR
-			builtNodeImage=true
-		fi
+		buildNodeImage
 
 		docker run \
 			-v $hostNodeArtifactsDir:$volumeContainerDir \
@@ -47,13 +51,7 @@ getYarn() {
 		echo "Getting Yarn version '$version'..."
 		echo
 
-		if ! $builtNodeImage; then
-			docker build \
-				-f "$nodePlatformDir/Dockerfile" \
-				-t $imageName \
-				$REPO_DIR
-			builtNodeImage=true
-		fi
+		buildNodeImage
 
 		docker run \
 			-v $hostDir:$volumeContainerDir \

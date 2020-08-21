@@ -6,7 +6,7 @@ RUN apt-get update \
 RUN curl -sL https://git.io/n-install | bash -s -- -ny -
 RUN mkdir -p /tmp/scripts
 COPY platforms/nodejs/build.sh /tmp/scripts
-COPY platforms/nodejs/getYarn.sh /tmp/scripts
+COPY platforms/nodejs/yarn/getYarn.sh /tmp/scripts
 COPY images/receiveGpgKeys.sh /tmp/scripts
 RUN chmod +x /tmp/scripts/build.sh \
     && chmod +x /tmp/scripts/getYarn.sh \
