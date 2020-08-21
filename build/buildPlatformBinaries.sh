@@ -22,7 +22,7 @@ case $PLATFORM_TO_BUILD in
 		"$platformsDir/php/buildPhp.sh"
 		;;
 	'nodejs')
-		"$platformsDir/nodejs/getNode.sh"
+		"$platformsDir/nodejs/build.sh"
 		;;            
 	*) echo "Unknown image directory";;
 esac

@@ -6,32 +6,87 @@
 
 set -ex
 
-version="$1"
+declare -r REPO_DIR=$( cd $( dirname "$0" ) && cd .. && cd .. && pwd )
 
-# Certain versions (ex: 6.4.1) of NPM have issues installing native modules
-# like 'grpc', so upgrading them to a version whch we know works.
-upgradeNpm() {
-    local node_ver="$1"
+source $REPO_DIR/platforms/__common.sh
 
-    local nodeDir="/usr/local/n/versions/node/$node_ver"
-    local nodeModulesDir="$nodeDir/lib/node_modules"
-    local npm_ver=`jq -r .version $nodeModulesDir/npm/package.json`
-    IFS='.' read -ra versionParts <<< "$npm_ver"
-    local majorPart="${versionParts[0]}"
-    local minorPart="${versionParts[1]}"
+nodePlatformDir="$REPO_DIR/platforms/nodejs"
+hostNodeArtifactsDir="$volumeHostDir/nodejs"
+mkdir -p "$hostNodeArtifactsDir"
 
-    if [ "$majorPart" -eq "6" ] && [ "$minorPart" -lt "9" ] ; then
-        echo "Upgrading node $node_ver's npm version from $npm_ver to 6.9.0"
-        cd $nodeModulesDir
-        PATH="$nodeDir/bin:$PATH" \
-        "$nodeModulesDir/npm/bin/npm-cli.js" install npm@6.9.0
-        echo
-    fi
+builtNodeImage=false
+buildNodeImage() {
+	if ! $builtNodeImage; then
+		docker build \
+			-f "$nodePlatformDir/Dockerfile" \
+			-t $imageName \
+			$REPO_DIR
+		builtNodeImage=true
+	fi
 }
 
-~/n/bin/n -d $version
-upgradeNpm $version
-cd /usr/local/n/versions/node/$version
-mkdir -p /tmp/compressedSdk
-tar -zcf /tmp/compressedSdk/nodejs-$version.tar.gz .
-rm -rf /usr/local/n ~/n
+getNode() {
+	local version="$1"
+
+	if shouldBuildSdk nodejs nodejs-$version.tar.gz || shouldOverwriteSdk || shouldOverwriteNodeSdk; then
+		echo "Getting Node version '$version'..."
+		echo
+
+		buildNodeImage
+
+		docker run \
+			-v $hostNodeArtifactsDir:$volumeContainerDir \
+			$imageName \
+			bash -c "/tmp/scripts/getNode.sh $version && cp -f /tmp/compressedSdk/* /tmp/sdk"
+		
+		echo "Version=$version" >> "$hostNodeArtifactsDir/nodejs-$version-metadata.txt"
+	fi
+}
+
+getYarn() {
+	local version="$1"
+
+	local hostDir="$hostNodeArtifactsDir/yarn"
+	if shouldBuildSdk yarn yarn-$version.tar.gz || shouldOverwriteSdk || shouldOverwriteYarnSdk; then
+		echo "Getting Yarn version '$version'..."
+		echo
+
+		buildNodeImage
+
+		docker run \
+			-v $hostDir:$volumeContainerDir \
+			$imageName \
+			bash -c "/tmp/scripts/getYarn.sh $version && cp -f /tmp/compressedSdk/yarn/* /tmp/sdk"
+		
+		echo "Version=$version" >> "$hostNodeArtifactsDir/yarn-$version-metadata.txt"
+	fi
+}
+
+shouldOverwriteNodeSdk() {
+	if [ "$OVERWRITE_EXISTING_SDKS_NODE" == "true" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+shouldOverwriteYarnSdk() {
+	if [ "$OVERWRITE_EXISTING_SDKS_YARN" == "true" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+echo "Getting Node Sdk..."
+echo
+buildPlatform "$nodePlatformDir/versionsToBuild.txt" getNode
+
+echo "Getting Yarn..."
+echo
+buildPlatform "$nodePlatformDir/yarn/versionsToBuild.txt" getYarn
+
+# Write the default version
+cp "$nodePlatformDir/defaultVersion.txt" $hostNodeArtifactsDir
+cp "$nodePlatformDir/yarn/defaultVersion.txt" "$hostNodeArtifactsDir/yarn"
+
