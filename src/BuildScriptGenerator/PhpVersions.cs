@@ -7,19 +7,11 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Common
         public const string PhpRuntimeBaseTag = "20200812.3";
         public const string PhpFpmRuntimeBaseTag = "20200811.1";
         public const string ComposerVersion = "1.9.3";
-<<<<<<< HEAD
         public const string ComposerSetupSha384 = "572cb359b56ad9ae52f9c23d29d4b19a040af10d6635642e646a7caa7b96de717ce683bd797a92ce99e5929cc51e7d5f";
-        public const string Php74Version = "7.4.3";
-        public const string Php74Keys = "5A52880781F755608BF815FC910DEB46F53EA312 42670A7FE4D0441C8E4632349E4FDC074A4EF02D";
-        public const string Php74TarSha256 = "cf1f856d877c268124ded1ede40c9fb6142b125fdaafdc54f855120b8bc6982a";
-        public const string Php73Version = "7.3.15";
-=======
-        public const string ComposerSha384 = "e0012edf3e80b6978849f5eff0d4b4e4c79ff1609dd1e613307e16318854d24ae64f26d17af3ef0bf7cfb710ca74755a";
         public const string Php74Version = "7.4.9";
         public const string Php74Keys = "42670A7FE4D0441C8E4632349E4FDC074A4EF02D 5A52880781F755608BF815FC910DEB46F53EA312";
         public const string Php74TarSha256 = "23733f4a608ad1bebdcecf0138ebc5fd57cf20d6e0915f98a9444c3f747dc57b";
         public const string Php73Version = "7.3.21";
->>>>>>> security update for php
         public const string Php73Keys = "CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D";
         public const string Php73TarSha256 = "4c8b065746ef776d84b7ae47908c21a79e3d4704b86b60d816716b8697c58ce9";
         public const string Php72Version = "7.2.33";
