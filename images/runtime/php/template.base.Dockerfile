@@ -74,10 +74,10 @@ RUN docker-php-ext-configure pdo_odbc --with-pdo-odbc=unixODBC,/usr \
 
 # deprecated from 5.*, so should be avoided 
 RUN set -eux; \
-    if [[ $PHP_VERSION -ne 5.6.* ]]; then \
-        pecl install mongodb && docker-php-ext-enable mongodb \
+    if [ $PHP_VERSION !=  5.* ]; then \
+        echo "pecl/mongodb requires PHP (version >= 7.0.0, version <= 7.99.99)"; \
+        pecl install mongodb && docker-php-ext-enable mongodb; \
     fi
-
 
 # Install the Microsoft SQL Server PDO driver on supported versions only.
 #  - https://docs.microsoft.com/en-us/sql/connect/php/installation-tutorial-linux-mac
