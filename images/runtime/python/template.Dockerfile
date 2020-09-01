@@ -1,6 +1,6 @@
 ARG DEBIAN_FLAVOR
 # Startup script generator
-FROM golang:1.14-${DEBIAN_FLAVOR} as startupCmdGen
+FROM golang:1.14-${DEBIAN_FLAVOR} as python-startupCmdGen
 # Install dep
 RUN go get -u github.com/golang/dep/cmd/dep
 # GOPATH is set to "/go" in the base image
@@ -45,4 +45,4 @@ RUN pip install --upgrade pip \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /tmp/oryx
     
-COPY --from=startupCmdGen /opt/startupcmdgen/startupcmdgen /opt/startupcmdgen/startupcmdgen
+COPY --from=python-startupCmdGen /opt/startupcmdgen/startupcmdgen /opt/startupcmdgen/startupcmdgen

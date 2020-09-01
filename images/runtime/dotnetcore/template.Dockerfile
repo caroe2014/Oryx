@@ -1,6 +1,6 @@
 ARG DEBIAN_FLAVOR
 # Startup script generator
-FROM golang:1.14-${DEBIAN_FLAVOR} as startupCmdGen
+FROM golang:1.14-${DEBIAN_FLAVOR} as dotnet-startupCmdGen
 # Install dep
 RUN go get -u github.com/golang/dep/cmd/dep
 # GOPATH is set to "/go" in the base image
@@ -20,7 +20,7 @@ FROM %RUNTIME_BASE_IMAGE_NAME%
 ARG AI_KEY
 ENV ORYX_AI_INSTRUMENTATION_KEY=${AI_KEY}
 
-COPY --from=startupCmdGen /opt/startupcmdgen/startupcmdgen /opt/startupcmdgen/startupcmdgen
+COPY --from=dotnet-startupCmdGen /opt/startupcmdgen/startupcmdgen /opt/startupcmdgen/startupcmdgen
 RUN ln -s /opt/startupcmdgen/startupcmdgen /usr/local/bin/oryx \
     && apt-get update \
     && apt-get upgrade --assume-yes

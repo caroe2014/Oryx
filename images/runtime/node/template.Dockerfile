@@ -1,6 +1,6 @@
 ARG DEBIAN_FLAVOR
 # Startup script generator
-FROM golang:1.14.2-${DEBIAN_FLAVOR} as startupCmdGen
+FROM golang:1.14.2-${DEBIAN_FLAVOR} as node-startupCmdGen
 # Install dep
 RUN go get -u github.com/golang/dep/cmd/dep
 # GOPATH is set to "/go" in the base image
@@ -20,7 +20,7 @@ FROM %RUNTIME_BASE_IMAGE_NAME%
 ARG AI_KEY
 ENV ORYX_AI_INSTRUMENTATION_KEY=${AI_KEY}
 
-COPY --from=startupCmdGen /opt/startupcmdgen/startupcmdgen /opt/startupcmdgen/startupcmdgen
+COPY --from=node-startupCmdGen /opt/startupcmdgen/startupcmdgen /opt/startupcmdgen/startupcmdgen
 
 # Node wrapper is used to debug apps when node is executed indirectly, e.g. by npm.
 COPY src/startupscriptgenerator/src/node/wrapper/node /opt/node-wrapper/

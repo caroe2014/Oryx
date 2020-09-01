@@ -151,6 +151,19 @@ done
 
 if [ "$AGENT_BUILD" == "true" ]
 then
+    startupScriptGeneratorsRootDir="$ARTIFACTS_DIR/runtimeStartUpScriptGenerators"
+    mkdir -p $startupScriptGeneratorsRootDir
+    platforms=("node" "python" "dotnet" "php")
+    for platform in "${platforms[@]}"
+    do
+        echo
+        echo "Copying '${platform}' startup script generator to '$startupScriptGeneratorsRootDir'..."
+        docker run \
+            -v $ARTIFACTS_DIR:/artifacts $platform-startupCmdGen \
+            /bin/bash -c "cp /opt/startupcmdgen/startupcmdgen /artifacts/runtimeStartUpScriptGenerators/${platform}StartupCommandGen"
+    done
+    ls -l $startupScriptGeneratorsRootDir
+
     echo
     echo "List of images tagged (from '$ACR_RUNTIME_IMAGES_ARTIFACTS_FILE.$runtimeImageDebianFlavor.txt'):"
     cat $ACR_RUNTIME_IMAGES_ARTIFACTS_FILE.$runtimeImageDebianFlavor.txt
