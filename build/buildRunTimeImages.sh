@@ -163,6 +163,11 @@ then
             /bin/bash -c "cp /opt/startupcmdgen/startupcmdgen /artifacts/runtimeStartUpScriptGenerators/${platform}StartupCommandGen"
     done
     ls -l $startupScriptGeneratorsRootDir
+    currentDir=$(pwd)
+    cd $startupScriptGeneratorsRootDir
+    tar -zcf "$ARTIFACTS_DIR/runtimeStartUpScriptGenerators.tar.gz" .
+    cd $currentDir
+    rm -rf $startupScriptGeneratorsRootDir
 
     echo
     echo "List of images tagged (from '$ACR_RUNTIME_IMAGES_ARTIFACTS_FILE.$runtimeImageDebianFlavor.txt'):"

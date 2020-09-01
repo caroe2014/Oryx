@@ -73,6 +73,12 @@ jobs:
       artifactName: 'signed_binaries'
       path: $(Build.SourcesDirectory)/artifacts
 
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Oryx runtime startup script generators to publish to release'
+    inputs:
+      artifactName: 'runtimeStartUpScriptGenerators'
+      path: $(Build.SourcesDirectory)/artifacts
+
   - template: _setReleaseTag.yml
 
   - task: GitHubRelease@0
@@ -82,5 +88,8 @@ jobs:
       repositoryName: Microsoft/Oryx
       tagSource: manual
       tag: '$(RELEASE_TAG_NAME)'
-      assets: $(Build.SourcesDirectory)/artifacts/oryx_linux_x64.tar.gz
+      assets:
+        $(Build.SourcesDirectory)/artifacts/oryx_linux_x64.tar.gz
+        $(Build.SourcesDirectory)/artifacts/*StartupCommandGen
+
   
