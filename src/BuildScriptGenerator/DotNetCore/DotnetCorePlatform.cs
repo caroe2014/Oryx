@@ -91,7 +91,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
                     return null;
                 }
 
-                ResolveVersions(detectionResult);
+                ResolveVersions(context, detectionResult);
                 return detectionResult;
             }
             catch (InvalidProjectFileException e)
@@ -220,39 +220,35 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
             BuildScriptGeneratorContext context,
             PlatformDetectorResult detectorResult)
         {
-            var versionMap = _versionProvider.GetSupportedVersions();
+            var dotNetCorePlatformDetectorResult = detectorResult as DotNetCorePlatformDetectorResult;
+            if (dotNetCorePlatformDetectorResult == null)
+            {
+                throw new ArgumentException(
+                    $"Expected '{nameof(detectorResult)}' argument to be of type " +
+                    $"'{typeof(DotNetCorePlatformDetectorResult)}' but got '{detectorResult.GetType()}'.");
+            }
 
             string installationScriptSnippet = null;
             if (_commonOptions.EnableDynamicInstall)
             {
                 _logger.LogDebug("Dynamic install is enabled.");
 
-                string globalJsonSdkVersion;
-                var availableSdks = versionMap.Values;
-                globalJsonSdkVersion = _globalJsonSdkResolver.GetSatisfyingSdkVersion(
-                    context.SourceRepo,
-                    detectorResult.PlatformVersion,
-                    availableSdks);
-
-                if (_platformInstaller.IsVersionAlreadyInstalled(
-                    detectorResult.PlatformVersion,
-                    globalJsonSdkVersion))
+                if (_platformInstaller.IsVersionAlreadyInstalled(dotNetCorePlatformDetectorResult.SdkVersion))
                 {
                     _logger.LogDebug(
-                        "DotNetCore runtime version {runtimeVersion} is already installed. " +
+                        "DotNetCore SDK version {globalJsonSdkVersion} is already installed. " +
                         "So skipping installing it again.",
-                        detectorResult.PlatformVersion);
+                        dotNetCorePlatformDetectorResult.SdkVersion);
                 }
                 else
                 {
                     _logger.LogDebug(
-                        "DotNetCore runtime version {runtimeVersion} is not installed. " +
+                        "DotNetCore SDK version {globalJsonSdkVersion} is not installed. " +
                         "So generating an installation script snippet for it.",
-                        detectorResult.PlatformVersion);
+                        dotNetCorePlatformDetectorResult.SdkVersion);
 
                     installationScriptSnippet = _platformInstaller.GetInstallerScriptSnippet(
-                        detectorResult.PlatformVersion,
-                        globalJsonSdkVersion);
+                        dotNetCorePlatformDetectorResult.SdkVersion);
                 }
             }
             else
@@ -264,11 +260,38 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
         }
 
         /// <inheritdoc/>
-        public void ResolveVersions(PlatformDetectorResult detectorResult)
+        public void ResolveVersions(RepositoryContext context, PlatformDetectorResult detectorResult)
         {
-            var resolvedVersion = GetVersionUsingHierarchicalRules(detectorResult.PlatformVersion);
-            resolvedVersion = GetMaxSatisfyingVersionAndVerify(resolvedVersion);
-            detectorResult.PlatformVersion = resolvedVersion;
+            var dotNetCorePlatformDetectorResult = detectorResult as DotNetCorePlatformDetectorResult;
+            if (dotNetCorePlatformDetectorResult == null)
+            {
+                throw new ArgumentException(
+                    $"Expected '{nameof(detectorResult)}' argument to be of type " +
+                    $"'{typeof(DotNetCorePlatformDetectorResult)}' but got '{detectorResult.GetType()}'.");
+            }
+
+            // Get runtime version
+            var resolvedRuntimeVersion = GetRuntimeVersionUsingHierarchicalRules(
+                dotNetCorePlatformDetectorResult.PlatformVersion);
+            resolvedRuntimeVersion = GetMaxSatisfyingRuntimeVersionAndVerify(resolvedRuntimeVersion);
+            dotNetCorePlatformDetectorResult.PlatformVersion = resolvedRuntimeVersion;
+
+            var versionMap = _versionProvider.GetSupportedVersions();
+
+            if (_commonOptions.EnableDynamicInstall)
+            {
+                var availableSdks = versionMap.Values;
+                var globalJsonSdkVersion = _globalJsonSdkResolver.GetSatisfyingSdkVersion(
+                    context.SourceRepo,
+                    dotNetCorePlatformDetectorResult.PlatformVersion,
+                    availableSdks);
+                dotNetCorePlatformDetectorResult.SdkVersion = globalJsonSdkVersion;
+            }
+            else
+            {
+                dotNetCorePlatformDetectorResult.SdkVersion
+                    = versionMap[dotNetCorePlatformDetectorResult.PlatformVersion];
+            }
         }
 
         /// <inheritdoc/>
@@ -276,8 +299,16 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
             RepositoryContext context,
             PlatformDetectorResult detectorResult)
         {
+            var dotNetCorePlatformDetectorResult = detectorResult as DotNetCorePlatformDetectorResult;
+            if (dotNetCorePlatformDetectorResult == null)
+            {
+                throw new ArgumentException(
+                    $"Expected '{nameof(detectorResult)}' argument to be of type " +
+                    $"'{typeof(DotNetCorePlatformDetectorResult)}' but got '{detectorResult.GetType()}'.");
+            }
+
             var tools = new Dictionary<string, string>();
-            tools[DotNetCoreConstants.PlatformName] = detectorResult.PlatformVersion;
+            tools[DotNetCoreConstants.PlatformName] = dotNetCorePlatformDetectorResult.SdkVersion;
             return tools;
         }
 
@@ -327,7 +358,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
             buildProperties[DotNetCoreManifestFilePropertyKeys.StartupDllFileName] = startupDllFileName;
         }
 
-        private string GetMaxSatisfyingVersionAndVerify(string runtimeVersion)
+        private string GetMaxSatisfyingRuntimeVersionAndVerify(string runtimeVersion)
         {
             var versionMap = _versionProvider.GetSupportedVersions();
 
@@ -372,7 +403,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
             return maxSatisfyingVersion;
         }
 
-        private string GetVersionUsingHierarchicalRules(string detectedVersion)
+        private string GetRuntimeVersionUsingHierarchicalRules(string detectedVersion)
         {
             // Explicitly specified version by user wins over detected version
             if (!string.IsNullOrEmpty(_dotNetCoreScriptGeneratorOptions.DotNetCoreRuntimeVersion))

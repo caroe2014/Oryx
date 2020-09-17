@@ -34,28 +34,23 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
 
             _logger.LogDebug(
                 "Getting list of supported runtime and their sdk versions from {installationDir}",
-                DotNetCoreConstants.DefaultDotNetCoreRuntimeVersionsInstallDir);
+                DotNetCoreConstants.DefaultDotNetCoreSdkVersionsInstallDir);
 
-            var installedRuntimeVersions = VersionProviderHelper.GetVersionsFromDirectory(
-                        DotNetCoreConstants.DefaultDotNetCoreRuntimeVersionsInstallDir);
-            foreach (var runtimeVersion in installedRuntimeVersions)
+            var dotNetCoreVersionDirs = Directory.GetDirectories(
+                DotNetCoreConstants.DefaultDotNetCoreSdkVersionsInstallDir);
+            foreach (var sdkVersionDirPath in dotNetCoreVersionDirs)
             {
-                var runtimeDir = Path.Combine(
-                    DotNetCoreConstants.DefaultDotNetCoreRuntimeVersionsInstallDir,
-                    runtimeVersion);
-                var sdkVersionFile = Path.Combine(runtimeDir, "sdkVersion.txt");
-                if (!File.Exists(sdkVersionFile))
+                var sdkVersionDirName = new DirectoryInfo(sdkVersionDirPath);
+                var netCoreAppDirPath = Path.Combine(sdkVersionDirPath, "shared", "Microsoft.NETCore.App");
+                if (Directory.Exists(netCoreAppDirPath))
                 {
-                    throw new InvalidOperationException($"Could not find file '{sdkVersionFile}'.");
+                    var runtimeVersionDirNames = Directory.GetDirectories(netCoreAppDirPath);
+                    foreach (var runtimeVersionDirPath in runtimeVersionDirNames)
+                    {
+                        var runtimeVersionDir = new DirectoryInfo(runtimeVersionDirPath);
+                        versionMap[runtimeVersionDir.Name] = sdkVersionDirName.Name;
+                    }
                 }
-
-                var sdkVersion = File.ReadAllText(sdkVersionFile);
-                if (string.IsNullOrEmpty(sdkVersion))
-                {
-                    throw new InvalidOperationException("Sdk version cannot be empty.");
-                }
-
-                versionMap[runtimeVersion] = sdkVersion.Trim();
             }
 
             return versionMap;
