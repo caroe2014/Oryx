@@ -40,6 +40,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
                 DotNetCoreConstants.DefaultDotNetCoreSdkVersionsInstallDir);
             foreach (var sdkVersionDirPath in dotNetCoreVersionDirs)
             {
+                Console.WriteLine("sdkVersionDir: " + sdkVersionDirPath);
                 var sdkVersionDirName = new DirectoryInfo(sdkVersionDirPath);
                 var netCoreAppDirPath = Path.Combine(sdkVersionDirPath, "shared", "Microsoft.NETCore.App");
                 if (Directory.Exists(netCoreAppDirPath))
@@ -47,6 +48,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
                     var runtimeVersionDirNames = Directory.GetDirectories(netCoreAppDirPath);
                     foreach (var runtimeVersionDirPath in runtimeVersionDirNames)
                     {
+                        Console.WriteLine("runtimeVersionDirPath: " + runtimeVersionDirPath);
                         var runtimeVersionDir = new DirectoryInfo(runtimeVersionDirPath);
                         versionMap[runtimeVersionDir.Name] = sdkVersionDirName.Name;
                     }

@@ -292,6 +292,13 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
                 dotNetCorePlatformDetectorResult.SdkVersion
                     = versionMap[dotNetCorePlatformDetectorResult.PlatformVersion];
             }
+
+            Console.WriteLine("---------------------------------------------------");
+            Console.WriteLine(Environment.NewLine, versionMap.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+            Console.WriteLine("---------------------------------------------------");
+            Console.WriteLine("Runtime version: " + dotNetCorePlatformDetectorResult.PlatformVersion);
+            Console.WriteLine("Sdk version: " + dotNetCorePlatformDetectorResult.SdkVersion);
+            Console.WriteLine("---------------------------------------------------");
         }
 
         /// <inheritdoc/>
