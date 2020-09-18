@@ -3,7 +3,9 @@
 // Licensed under the MIT license.
 // --------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -51,6 +53,10 @@ namespace Microsoft.Oryx.BuildScriptGenerator.DotNetCore
                 _supportedVersions = _cliOptions.EnableDynamicInstall ?
                     _sdkStorageVersionProvider.GetSupportedVersions() :
                     _onDiskVersionProvider.GetSupportedVersions();
+
+                Console.WriteLine("***************************************************");
+                Console.WriteLine(Environment.NewLine, _supportedVersions.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+                Console.WriteLine("***************************************************");
             }
 
             _logger.LogDebug("Got the list of supported versions");
