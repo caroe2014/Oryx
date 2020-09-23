@@ -36,7 +36,10 @@ namespace Microsoft.Oryx.Integration.Tests
                 .SetEnvironmentVariable(
                     SdkStorageConstants.SdkStorageBaseUrlKeyName,
                     SdkStorageConstants.DevSdkStorageBaseUrl)
-                .AddCommand($"oryx build {appDir} --platform {DotNetCoreConstants.PlatformName} --platform-version {dotNetCoreVersion} -o {appOutputDir}")
+                .AddCommand("printenv")
+                .AddCommand(
+                $"oryx build {appDir} --debug --platform {DotNetCoreConstants.PlatformName} " +
+                $"--platform-version {dotNetCoreVersion} -o {appOutputDir}")
                 .ToString();
             var runtimeImageScript = new ShellScriptBuilder()
                 .AddCommand(
