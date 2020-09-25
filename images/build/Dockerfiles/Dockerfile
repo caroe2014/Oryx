@@ -62,52 +62,6 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         jq \
     && rm -rf /var/lib/apt/lists/*
-RUN cd ${IMAGES_DIR} \ 
- && . ${BUILD_DIR}/__nodeVersions.sh \
- && ./installPlatform.sh nodejs 8.0.0 \
- && ./installPlatform.sh nodejs 8.1.4 \
- && ./installPlatform.sh nodejs 8.2.1 \
- && ./installPlatform.sh nodejs 8.8.1 \
- && ./installPlatform.sh nodejs 8.9.4 \
- && ./installPlatform.sh nodejs 8.11.2 \
- && ./installPlatform.sh nodejs 8.12.0 \
- && ./installPlatform.sh nodejs 8.15.1 \
- && ./installPlatform.sh nodejs 9.4.0 \
- && ./installPlatform.sh nodejs 10.1.0 \
- && ./installPlatform.sh nodejs 10.10.0 \
- && ./installPlatform.sh nodejs 10.14.2 \
- && ./installPlatform.sh nodejs 10.21.0 \
- && ./installPlatform.sh nodejs 12.18.2 \
-RUN ${IMAGES_DIR}/build/installNpm.sh
-
-RUN set -ex \
- && ln -s 8.0.0 /opt/nodejs/8.0 \
- && ln -s 8.1.4 /opt/nodejs/8.1 \
- && ln -s 8.2.1 /opt/nodejs/8.2 \
- && ln -s 8.8.1 /opt/nodejs/8.8 \
- && ln -s 8.9.4 /opt/nodejs/8.9 \
- && ln -s 8.11.2 /opt/nodejs/8.11 \
- && ln -s 8.12.0 /opt/nodejs/8.12 \
- && ln -s 8.15.1 /opt/nodejs/8.15 \
- && ln -s 9.4.0 /opt/nodejs/9.4 \
- && ln -s 9.4 /opt/nodejs/9 \
- && ln -s 10.1.0 /opt/nodejs/10.1 \
- && ln -s 10.10.0 /opt/nodejs/10.10 \
- && ln -s 10.14.2 /opt/nodejs/10.14 \
- && ln -s 10.21.0 /opt/nodejs/10.21 \
- && ln -s 12.18.2 /opt/nodejs/12.18 \
- && . ${BUILD_DIR}/__nodeVersions.sh \
-RUN set -ex \
- && ln -s 2.15.9 /opt/npm/2.15 \
- && ln -s 2.15 /opt/npm/2 \
- && ln -s 3.9.5 /opt/npm/3.9 \
- && ln -s 3.10.10 /opt/npm/3.10 \
- && ln -s 3.10 /opt/npm/3 \
- && ln -s 5.0.3 /opt/npm/5.0 \
- && ln -s 5.3.0 /opt/npm/5.3 \
- && ln -s 5.4.2 /opt/npm/5.4 \
- && ln -s 5.6.0 /opt/npm/5.6 \
- && ln -s 5.6 /opt/npm/5
 
 FROM main AS final
 COPY --from=intermediate /opt /opt
@@ -134,31 +88,9 @@ RUN PYTHONIOENCODING="UTF-8" \
     && rm -rf /opt/yarn-cache \
     && chmod -R 777 /usr/local/share/yarn-cache \
     && cd $imagesDir \
-    && . $buildDir/__pythonVersions.sh \
-    && ./installPlatform.sh python $PYTHON27_VERSION \
-    && ./installPlatform.sh python $PYTHON36_VERSION \
-    && ./installPlatform.sh python $PYTHON37_VERSION \
-    && ./installPlatform.sh python $PYTHON38_VERSION \
-    && . $buildDir/__pythonVersions.sh && set -ex \
-    && [ -d "/opt/python/$PYTHON27_VERSION" ] && echo /opt/python/$PYTHON27_VERSION/lib >> /etc/ld.so.conf.d/python.conf \
-    && [ -d "/opt/python/$PYTHON36_VERSION" ] && echo /opt/python/$PYTHON36_VERSION/lib >> /etc/ld.so.conf.d/python.conf \
-    && [ -d "/opt/python/$PYTHON37_VERSION" ] && echo /opt/python/$PYTHON37_VERSION/lib >> /etc/ld.so.conf.d/python.conf \
-    && [ -d "/opt/python/$PYTHON38_VERSION" ] && echo /opt/python/$PYTHON38_VERSION/lib >> /etc/ld.so.conf.d/python.conf \
-    && ldconfig \
-    && . $buildDir/__pythonVersions.sh && set -ex \
-    && ln -sfn $PYTHON27_VERSION /opt/python/2.7 \
-    && ln -sfn 2.7 /opt/python/2 \
-    && ln -sfn $PYTHON36_VERSION /opt/python/3.6 \
-    && ln -sfn $PYTHON37_VERSION /opt/python/3.7 \
-    && ln -sfn $PYTHON38_VERSION /opt/python/3.8 \
     && $imagesDir/build/createFlattenedDotNetCoreInstall.sh \
     && cp $imagesDir/build/dotNetCoreAll.Readme.md /opt/dotnet/Readme.md \
     # Copy PHP versions
     && cd $imagesDir \
     && . $buildDir/__phpVersions.sh \
-    && ./installPlatform.sh php $PHP56_VERSION \
-    && ./installPlatform.sh php $PHP70_VERSION \
-    && ./installPlatform.sh php $PHP72_VERSION \
-    && ./installPlatform.sh php $PHP74_VERSION \
-    && ln -s /opt/php/5.6 /opt/php/5 \
     && rm -rf $tmpDir
