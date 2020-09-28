@@ -45,10 +45,6 @@ RUN mkdir /opt/nuget
 # Check https://www.microsoft.com/net/platform/support-policy for support policy of .NET Core versions
 ENV NUGET_PACKAGES=/opt/nuget
 RUN . ${BUILD_DIR}/__dotNetCoreSdkVersions.sh && \
-    DOTNET_SDK_VER=$DOT_NET_CORE_11_SDK_VERSION \
-    ${IMAGES_DIR}/build/installDotNetCore.sh
-
-RUN . ${BUILD_DIR}/__dotNetCoreSdkVersions.sh && \
     DOTNET_SDK_VER=$DOT_NET_CORE_22_SDK_VERSION \
     ${IMAGES_DIR}/build/installDotNetCore.sh
 
@@ -60,41 +56,6 @@ RUN set -ex \
     rm -rf /tmp/NuGetScratch \
     && find /opt/nuget -type d -exec chmod 777 {} \;
 
-RUN set -ex \
- && sdksDir=/opt/dotnet/sdks \
- && cd $sdksDir \
- && ln -s 1.1 1 \
- && ln -s 3.0 3
-
-RUN set -ex \
- && dotnetDir=/opt/dotnet \
- && sdksDir=$dotnetDir/sdks \
- && runtimesDir=$dotnetDir/runtimes \
- && cd $runtimesDir \
- && . ${BUILD_DIR}/__dotNetCoreSdkVersions.sh \
- && . ${BUILD_DIR}/__dotNetCoreRunTimeVersions.sh \
- # 1.1 sdk <-- 1.0 runtime's sdk
- && mkdir $NET_CORE_APP_10 \
- && ln -s $NET_CORE_APP_10 1.0 \
- && echo $DOT_NET_CORE_11_SDK_VERSION > $NET_CORE_APP_10/sdkVersion.txt \
- # 1.1 sdk <-- 1.1 runtime's sdk
- && mkdir $NET_CORE_APP_11 \
- && ln -s $NET_CORE_APP_11 1.1 \
- && ln -s 1.1 1 \
- && echo $DOT_NET_CORE_11_SDK_VERSION > $NET_CORE_APP_11/sdkVersion.txt \
- # 2.1 sdk <-- 2.0 runtime's sdk
- && mkdir $NET_CORE_APP_20 \
- && ln -s $NET_CORE_APP_20 2.0 \
- && echo $DOT_NET_CORE_21_SDK_VERSION > $NET_CORE_APP_20/sdkVersion.txt \
- # 2.2 sdk <-- 2.2 runtime's sdk
- && mkdir $NET_CORE_APP_22 \
- && ln -s $NET_CORE_APP_22 2.2 \
- && echo $DOT_NET_CORE_22_SDK_VERSION > $NET_CORE_APP_22/sdkVersion.txt \
- # 3.0 sdk <-- 3.0 runtime's sdk
- && mkdir $NET_CORE_APP_30 \
- && ln -s $NET_CORE_APP_30 3.0 \
- && echo $DOT_NET_CORE_30_SDK_VERSION > $NET_CORE_APP_30/sdkVersion.txt
-
 # Install Node.js, NPM, Yarn
 RUN apt-get update \
     && apt-get upgrade -y \
@@ -103,20 +64,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 RUN cd ${IMAGES_DIR} \ 
  && . ${BUILD_DIR}/__nodeVersions.sh \
- && ./installPlatform.sh nodejs 4.4.7 \
- && ./installPlatform.sh nodejs 4.5.0 \
- && ./installPlatform.sh nodejs 4.8.0 \
- && ./installPlatform.sh nodejs 6.2.2 \
- && ./installPlatform.sh nodejs 6.6.0 \
- && ./installPlatform.sh nodejs 6.9.3 \
- && ./installPlatform.sh nodejs 6.10.3 \
- && ./installPlatform.sh nodejs 6.11.0 \
  && ./installPlatform.sh nodejs 8.0.0 \
  && ./installPlatform.sh nodejs 8.1.4 \
  && ./installPlatform.sh nodejs 8.2.1 \
  && ./installPlatform.sh nodejs 8.8.1 \
  && ./installPlatform.sh nodejs 8.9.4 \
- && ./installPlatform.sh nodejs 8.11.2 \
+ && ./installPlatform.sh nodejs 8.11.4 \
  && ./installPlatform.sh nodejs 8.12.0 \
  && ./installPlatform.sh nodejs 8.15.1 \
  && ./installPlatform.sh nodejs 9.4.0 \
@@ -125,25 +78,15 @@ RUN cd ${IMAGES_DIR} \
  && ./installPlatform.sh nodejs 10.14.2 \
  && ./installPlatform.sh nodejs 10.21.0 \
  && ./installPlatform.sh nodejs 12.18.2 \
- && ./installPlatform.sh nodejs $NODE6_VERSION
 RUN ${IMAGES_DIR}/build/installNpm.sh
 
 RUN set -ex \
- && ln -s 4.4.7 /opt/nodejs/4.4 \
- && ln -s 4.5.0 /opt/nodejs/4.5 \
- && ln -s 4.8.0 /opt/nodejs/4.8 \
- && ln -s 4.8 /opt/nodejs/4 \
- && ln -s 6.2.2 /opt/nodejs/6.2 \
- && ln -s 6.6.0 /opt/nodejs/6.6 \
- && ln -s 6.9.3 /opt/nodejs/6.9 \
- && ln -s 6.10.3 /opt/nodejs/6.10 \
- && ln -s 6.11.0 /opt/nodejs/6.11 \ 
  && ln -s 8.0.0 /opt/nodejs/8.0 \
  && ln -s 8.1.4 /opt/nodejs/8.1 \
  && ln -s 8.2.1 /opt/nodejs/8.2 \
  && ln -s 8.8.1 /opt/nodejs/8.8 \
  && ln -s 8.9.4 /opt/nodejs/8.9 \
- && ln -s 8.11.2 /opt/nodejs/8.11 \
+ && ln -s 8.11.4 /opt/nodejs/8.11 \
  && ln -s 8.12.0 /opt/nodejs/8.12 \
  && ln -s 8.15.1 /opt/nodejs/8.15 \
  && ln -s 9.4.0 /opt/nodejs/9.4 \
@@ -154,7 +97,6 @@ RUN set -ex \
  && ln -s 10.21.0 /opt/nodejs/10.21 \
  && ln -s 12.18.2 /opt/nodejs/12.18 \
  && . ${BUILD_DIR}/__nodeVersions.sh \
- && ln -s $NODE6_VERSION /opt/nodejs/6
 RUN set -ex \
  && ln -s 2.15.9 /opt/npm/2.15 \
  && ln -s 2.15 /opt/npm/2 \

@@ -3,11 +3,12 @@
 // Licensed under the MIT license.
 // --------------------------------------------------------------------------------------------
 
-using Microsoft.Oryx.BuildScriptGenerator.DotNetCore;
-using Microsoft.Oryx.BuildScriptGenerator.Common;
-using Microsoft.Oryx.Tests.Common;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Oryx.BuildScriptGenerator.Common;
+using Microsoft.Oryx.BuildScriptGenerator.DotNetCore;
+using Microsoft.Oryx.BuildScriptGeneratorCli;
+using Microsoft.Oryx.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -31,8 +32,15 @@ namespace Microsoft.Oryx.Integration.Tests
             var appDir = volume.ContainerDir;
             var appOutputDir = $"{appDir}/myoutputdir";
             var buildImageScript = new ShellScriptBuilder()
-                .AddCommand($"oryx build {appDir} " +
-                $"--platform {DotNetCoreConstants.PlatformName} --platform-version {dotNetCoreVersion} -o {appOutputDir}")
+                .SetEnvironmentVariable(
+                    SettingsKeys.DynamicInstallRootDir,
+                    BuildScriptGenerator.Constants.TemporaryInstallationDirectoryRoot)
+                .SetEnvironmentVariable(
+                    SdkStorageConstants.SdkStorageBaseUrlKeyName,
+                    SdkStorageConstants.DevSdkStorageBaseUrl)
+                .AddCommand(
+                $"oryx build {appDir} --platform {DotNetCoreConstants.PlatformName} " +
+                $"--platform-version {dotNetCoreVersion} -o {appOutputDir}")
                 .ToString();
             var runtimeImageScript = new ShellScriptBuilder()
                 .AddCommand(

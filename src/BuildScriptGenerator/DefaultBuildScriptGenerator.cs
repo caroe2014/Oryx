@@ -225,7 +225,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator
                     _logger.LogDebug(
                         "Platform {platformName} with version {platformVersion} was used.",
                         platform.Name,
-                        detectorResult);
+                        detectorResult.PlatformVersion);
                     snippets.Add(snippet);
                 }
                 else
@@ -269,6 +269,14 @@ namespace Microsoft.Oryx.BuildScriptGenerator
                 .ToDictionary(p => p.Key, p => p.Value);
             buildProperties[ManifestFilePropertyKeys.OperationId] = context.OperationId;
 
+            var sourceDirInBuildContainer = _cliOptions.SourceDir;
+            if (!string.IsNullOrEmpty(_cliOptions.IntermediateDir))
+            {
+                sourceDirInBuildContainer = _cliOptions.IntermediateDir;
+            }
+
+            buildProperties[ManifestFilePropertyKeys.SourceDirectoryInBuildContainer] = sourceDirInBuildContainer;
+
             var allPlatformNames = detectionResults
                 .Where(s => s.Platform != null)
                 .Select(s => s.Platform)
@@ -279,10 +287,11 @@ namespace Microsoft.Oryx.BuildScriptGenerator
                 _logger.LogInformation($"Build Property Key:{ManifestFilePropertyKeys.PlatformName} value: {eachPlatformName} is written into manifest");
                 if (buildProperties.ContainsKey(ManifestFilePropertyKeys.PlatformName))
                 {
+                    var previousValue = buildProperties[ManifestFilePropertyKeys.PlatformName];
                     buildProperties[ManifestFilePropertyKeys.PlatformName]
                     = string.Join(
-                        buildProperties[ManifestFilePropertyKeys.PlatformName],
                         ",",
+                        previousValue,
                         eachPlatformName);
                 }
                 else

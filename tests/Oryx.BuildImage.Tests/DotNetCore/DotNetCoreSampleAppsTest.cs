@@ -39,7 +39,8 @@ namespace Microsoft.Oryx.BuildImage.Tests
             var appOutputDir = "/tmp/aspnetcore10-output";
             var manifestFile = $"{appOutputDir}/{FilePaths.BuildManifestFileName}";
             var script = new ShellScriptBuilder()
-                .AddBuildCommand($"{appDir} -o {appOutputDir}")
+                .SetEnvironmentVariable("ENABLE_DYNAMIC_INSTALL", "true")
+                .AddBuildCommand($"{appDir} -o {appOutputDir} --platform dotnet --platform-version 1.1")
                 .AddFileExistsCheck($"{appOutputDir}/app.dll")
                 .AddFileExistsCheck(manifestFile)
                 .AddCommand($"cat {manifestFile}")
@@ -64,7 +65,7 @@ namespace Microsoft.Oryx.BuildImage.Tests
                         string.Format(SdkVersionMessageFormat, DotNetCoreSdkVersions.DotNetCore11SdkVersion),
                         result.StdOut);
                     Assert.Contains(
-                        $"{ManifestFilePropertyKeys.DotNetCoreRuntimeVersion}=\"{DotNetCoreRunTimeVersions.NetCoreApp10}\"",
+                        $"{ManifestFilePropertyKeys.DotNetCoreRuntimeVersion}=\"{DotNetCoreRunTimeVersions.NetCoreApp11}\"",
                         result.StdOut);
                     Assert.Contains(
                         $"{ManifestFilePropertyKeys.DotNetCoreSdkVersion}=\"{DotNetCoreSdkVersions.DotNetCore11SdkVersion}\"",
@@ -82,6 +83,7 @@ namespace Microsoft.Oryx.BuildImage.Tests
             var appDir = volume.ContainerDir;
             var appOutputDir = "/tmp/NetCoreApp11WebApp-output";
             var script = new ShellScriptBuilder()
+                .SetEnvironmentVariable("ENABLE_DYNAMIC_INSTALL", "true")
                 .AddBuildCommand($"{appDir} -o {appOutputDir}")
                 .AddFileExistsCheck($"{appOutputDir}/{appName}.dll")
                 .AddFileExistsCheck($"{appOutputDir}/{FilePaths.BuildManifestFileName}")
@@ -118,7 +120,8 @@ namespace Microsoft.Oryx.BuildImage.Tests
             var appDir = volume.ContainerDir;
             var appOutputDir = "/tmp/aspnetcore10-output";
             var script = new ShellScriptBuilder()
-                .AddBuildCommand($"{appDir} -o {appOutputDir}")
+                .SetEnvironmentVariable("ENABLE_DYNAMIC_INSTALL", "true")
+                .AddBuildCommand($"{appDir} -o {appOutputDir} --platform dotnet --platform-version 2.1")
                 .AddFileExistsCheck($"{appOutputDir}/app.dll")
                 .AddFileExistsCheck($"{appOutputDir}/{FilePaths.BuildManifestFileName}")
                 .ToString();
@@ -292,6 +295,46 @@ namespace Microsoft.Oryx.BuildImage.Tests
         }
 
         [Fact]
+        public void Builds_Net5MvcApp_UsingNet5_DotNetSdkVersion()
+        {
+            // Arrange
+            var appName = "Net5MvcApp";
+            var volume = CreateSampleAppVolume(appName);
+            var appDir = volume.ContainerDir;
+            var appOutputDir = "/tmp/Net5MvcApp-output";
+            var script = new ShellScriptBuilder()
+                .SetEnvironmentVariable(
+                    SdkStorageConstants.SdkStorageBaseUrlKeyName,
+                    SdkStorageConstants.DevSdkStorageBaseUrl)
+                .AddBuildCommand($"{appDir} -o {appOutputDir}")
+                .AddFileExistsCheck($"{appOutputDir}/{appName}.dll")
+                .ToString();
+
+            // Act
+            var result = _dockerCli.Run(new DockerRunArguments
+            {
+                ImageId = Settings.BuildImageName,
+                EnvironmentVariables = new List<EnvironmentVariable> { CreateAppNameEnvVar(appName) },
+                Volumes = new List<DockerVolume> { volume },
+                CommandToExecuteOnRun = "/bin/bash",
+                CommandArguments = new[] { "-c", script }
+            });
+
+            // Assert
+            RunAsserts(
+                () =>
+                {
+                    Assert.True(result.IsSuccess);
+                    Assert.Contains(
+                        string.Format(
+                            SdkVersionMessageFormat,
+                            DotNetCoreSdkVersions.DotNet50SdkVersion),
+                        result.StdOut);
+                },
+                result.GetDebugInfo());
+        }
+
+        [Fact]
         public void Build_ExecutesPreAndPostBuildScripts_WithinBenvContext()
         {
             // Arrange
@@ -346,7 +389,7 @@ namespace Microsoft.Oryx.BuildImage.Tests
                 () =>
                 {
                     Assert.True(result.IsSuccess);
-                    var dotnetExecutable = $"/opt/dotnet/sdks/{DotNetCoreSdkVersions.DotNetCore21SdkVersion}/dotnet";
+                    var dotnetExecutable = $"/opt/dotnet/{DotNetCoreSdkVersions.DotNetCore21SdkVersion}/dotnet";
                     Assert.Matches($"Pre-build script: {dotnetExecutable}", result.StdOut);
                     Assert.Matches($"Post-build script: {dotnetExecutable}", result.StdOut);
                 },
@@ -611,15 +654,22 @@ namespace Microsoft.Oryx.BuildImage.Tests
         public void Builds_SingleBlazorWasmProject_Without_Setting_Apptype_Option()
         {
             // Arrange
-            var appName = "SimpleBlazorWasmApp";
+            var appName = "Net5BlazorWasmClientApp";
             var volume = CreateSampleAppVolume(appName);
             var appDir = volume.ContainerDir;
             var appOutputDir = "/tmp/blazor-wasm-output";
             var script = new ShellScriptBuilder()
-                .AddBuildCommand($"{appDir} -o {appOutputDir}")
+                .SetEnvironmentVariable(
+                    SdkStorageConstants.SdkStorageBaseUrlKeyName,
+                    SdkStorageConstants.DevSdkStorageBaseUrl)
+                .AddBuildCommand(
+                $"{appDir} -o {appOutputDir} --platform dotnet " +
+                $"--platform-version {DotNetCoreRunTimeVersions.NetCoreApp50}")
                 .AddFileExistsCheck($"{appOutputDir}/{FilePaths.BuildManifestFileName}")
-                .AddStringExistsInFileCheck(ManifestFilePropertyKeys.PlatformName, $"{appOutputDir}/{FilePaths.BuildManifestFileName}")
-                .AddStringDoesNotExistInFileCheck($"{Constants.AppType}=\"static-sites\"", $"{appOutputDir}/{FilePaths.BuildManifestFileName}")
+                .AddStringExistsInFileCheck(
+                ManifestFilePropertyKeys.PlatformName, $"{appOutputDir}/{FilePaths.BuildManifestFileName}")
+                .AddStringDoesNotExistInFileCheck(
+                $"{Constants.AppType}=\"static-sites\"", $"{appOutputDir}/{FilePaths.BuildManifestFileName}")
                 .ToString();
 
             // Act
@@ -641,7 +691,7 @@ namespace Microsoft.Oryx.BuildImage.Tests
                 {
                     Assert.True(result.IsSuccess);
                     Assert.Contains(
-                        string.Format(SdkVersionMessageFormat, DotNetCoreSdkVersions.DotNetCore31SdkVersion),
+                        string.Format(SdkVersionMessageFormat, DotNetCoreSdkVersions.DotNet50SdkVersion),
                         result.StdOut);
                 },
                 result.GetDebugInfo());
@@ -667,7 +717,7 @@ namespace Microsoft.Oryx.BuildImage.Tests
             {
                 ImageId = Settings.BuildImageName,
                 EnvironmentVariables = new List<EnvironmentVariable>
-                { 
+                {
                     CreateAppNameEnvVar(appName)
                 },
                 Volumes = new List<DockerVolume> { volume },
@@ -706,8 +756,8 @@ namespace Microsoft.Oryx.BuildImage.Tests
             var result = _dockerCli.Run(new DockerRunArguments
             {
                 ImageId = Settings.BuildImageName,
-                EnvironmentVariables = new List<EnvironmentVariable> 
-                { 
+                EnvironmentVariables = new List<EnvironmentVariable>
+                {
                     CreateAppNameEnvVar(appName)
                 },
                 Volumes = new List<DockerVolume> { volume },
@@ -728,7 +778,6 @@ namespace Microsoft.Oryx.BuildImage.Tests
         }
 
         [Theory]
-        [InlineData(DotNetCoreSdkVersions.DotNetCore11SdkVersion)]
         [InlineData(DotNetCoreSdkVersions.DotNetCore21SdkVersion)]
         [InlineData(DotNetCoreSdkVersions.DotNetCore22SdkVersion)]
         [InlineData(DotNetCoreSdkVersions.DotNetCore30SdkVersion)]

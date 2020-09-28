@@ -26,6 +26,10 @@ RUN LANG="C.UTF-8" \
         # By default pip is not available in the buildpacks image
         python-pip \
         python3-pip \
+        # For .NET Core 1.1
+        libcurl3 \
+        libuuid1 \
+        libunwind8 \
     && rm -rf /var/lib/apt/lists/* \
     && pip install pip --upgrade \
     && pip3 install pip --upgrade \
@@ -75,32 +79,10 @@ RUN set -ex \
     && find /opt/nuget -type d -exec chmod 777 {} \;
 
 RUN set -ex \
- && sdksDir=/opt/dotnet/sdks \
- && cd $sdksDir \
- && ln -s 2.1 2 \
- && ln -s 3.1 3 \
- && ln -s 3 lts
-
-RUN set -ex \
- && dotnetDir=/opt/dotnet \
- && sdksDir=$dotnetDir/sdks \
- && runtimesDir=$dotnetDir/runtimes \
- && mkdir -p $runtimesDir \
- && cd $runtimesDir \
+ && cd /opt/dotnet \
  && . ${BUILD_DIR}/__dotNetCoreSdkVersions.sh \
- && . ${BUILD_DIR}/__dotNetCoreRunTimeVersions.sh \
- && mkdir $NET_CORE_APP_21 \
- && ln -s $NET_CORE_APP_21 2.1 \
- && ln -s 2.1 2 \
- && echo $DOT_NET_CORE_21_SDK_VERSION > $NET_CORE_APP_21/sdkVersion.txt \
- && mkdir $NET_CORE_APP_31 \
- && ln -s $NET_CORE_APP_31 3.1 \
- && ln -s 3.1 3 \
- && echo $DOT_NET_CORE_31_SDK_VERSION > $NET_CORE_APP_31/sdkVersion.txt \
- # LTS sdk <-- LTS runtime's sdk
- && ln -s 3 lts \
- && ltsSdk=$(cat lts/sdkVersion.txt | tr -d '\r') \
- && ln -s $ltsSdk/dotnet /usr/local/bin/dotnet
+ && ln -s $DOT_NET_CORE_31_SDK_VERSION lts \
+ && ln -s lts/dotnet /usr/local/bin/dotnet
 
 # Install Node.js, NPM, Yarn
 RUN apt-get update \
@@ -186,6 +168,8 @@ RUN imagesDir="/opt/tmp/images" \
     && ln -s $PYTHON38_VERSION /opt/python/latest \
     && ln -s $PYTHON38_VERSION /opt/python/stable \
     && ln -s 3.8 /opt/python/3 \
+    && pip install --upgrade cython \
+    && pip3 install --upgrade cython \
     # Install PHP pre-reqs
     && $imagesDir/build/php/prereqs/installPrereqs.sh \
     # Copy PHP versions
@@ -217,7 +201,7 @@ RUN imagesDir="/opt/tmp/images" \
 #
 # Even though this adds a new docker layer we are doing this 
 # because we want to avoid duplication (which is always error-prone)
-ENV ORYX_PATHS="/opt/oryx:/opt/nodejs/lts/bin:/opt/dotnet/sdks/lts:/opt/python/latest/bin:/opt/php/lts/bin:/opt/php-composer:/opt/yarn/stable/bin:/opt/hugo/lts"
+ENV ORYX_PATHS="/opt/oryx:/opt/nodejs/lts/bin:/opt/dotnet/lts:/opt/python/latest/bin:/opt/php/lts/bin:/opt/php-composer:/opt/yarn/stable/bin:/opt/hugo/lts"
 
 ENV LANG="C.UTF-8" \
     ORIGINAL_PATH="$PATH" \
@@ -226,6 +210,7 @@ ENV LANG="C.UTF-8" \
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE="1" \
     NUGET_PACKAGES="/var/nuget" \
     ORYX_SDK_STORAGE_BASE_URL="${SDK_STORAGE_BASE_URL_VALUE}" \
+    ENABLE_DYNAMIC_INSTALL="true" \
     ORYX_AI_INSTRUMENTATION_KEY=${AI_KEY} \
     PYTHONIOENCODING="UTF-8"
 

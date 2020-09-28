@@ -400,6 +400,9 @@ namespace Microsoft.Oryx.BuildImage.Tests
                     Assert.Contains(
                        $"{ManifestFilePropertyKeys.PythonVersion}=\"{PythonVersions.Python36Version}\"",
                        result.StdOut);
+                    Assert.Contains(
+                       $"{ManifestFilePropertyKeys.SourceDirectoryInBuildContainer}=\"{appDir}\"",
+                       result.StdOut);
                 },
                 result.GetDebugInfo());
         }
@@ -613,9 +616,11 @@ namespace Microsoft.Oryx.BuildImage.Tests
             var appIntermediateDir = "/tmp/app-intermediate";
             var appOutputDir = "/tmp/app-output";
             var virtualEnvName = GetDefaultVirtualEnvName(PythonConstants.PythonLtsVersion);
+            var manifestFile = $"{appOutputDir}/{FilePaths.BuildManifestFileName}";
             var script = new ShellScriptBuilder()
                 .AddBuildCommand($"{appDir} -o {appOutputDir} -i {appIntermediateDir}")
                 .AddDirectoryExistsCheck($"{appOutputDir}/{virtualEnvName}")
+                .AddCommand($"cat {manifestFile}")
                 .ToString();
 
             // Act
@@ -633,6 +638,9 @@ namespace Microsoft.Oryx.BuildImage.Tests
                 () =>
                 {
                     Assert.True(result.IsSuccess);
+                    Assert.Contains(
+                       $"{ManifestFilePropertyKeys.SourceDirectoryInBuildContainer}=\"{appIntermediateDir}\"",
+                       result.StdOut);
                 },
                 result.GetDebugInfo());
         }
@@ -802,7 +810,6 @@ namespace Microsoft.Oryx.BuildImage.Tests
             var script = new ShellScriptBuilder()
                 .AddBuildCommand(
                 $"{appDir} -o {appOutputDir} --platform {PythonConstants.PlatformName} --platform-version {PythonVersions.Python37Version}")
-                .AddDirectoryExistsCheck($"{appOutputDir}/pythonenv3.7/lib/python3.7/site-packages/flask")
                 .ToString();
 
             // Act
