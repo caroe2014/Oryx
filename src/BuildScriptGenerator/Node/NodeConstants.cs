@@ -9,6 +9,7 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Node
     {
         internal const string PlatformName = "nodejs";
         internal const string PackageJsonFileName = "package.json";
+        internal const string LernaJsonFileName = "lerna.json";
         internal const string PackageLockJsonFileName = "package-lock.json";
         internal const string YarnLockFileName = "yarn.lock";
         internal const string NodeToolName = "node";
@@ -18,6 +19,11 @@ namespace Microsoft.Oryx.BuildScriptGenerator.Node
         internal const string YarnStartCommand = "yarn run start";
         internal const string YarnCommand = "yarn";
         internal const string HugoCommand = "hugo";
+        internal const string NpmInstallLernaCommand = "npm install --global lerna";
+        internal const string LernaInitCommand = "lerna init";
+        internal const string LernaCleanCommand = "lerna clean --yes";
+        internal const string LernaListCommand = "lerna list";
+        internal const string LernaRunBuildCommand = "lerna run build";
         internal const string NpmPackageInstallCommand = "npm install --unsafe-perm";
         internal const string NpmVersionCommand = "echo Using Npm version: && npm --version";
         internal const string YarnVersionCommand = "echo Using Yarn version: && yarn --version";
