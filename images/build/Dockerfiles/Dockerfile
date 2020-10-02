@@ -77,7 +77,7 @@ RUN set -ex \
     && ln -s 10.14.2 10.14 \
     && ln -s 10.21.0 10.21 \
     && ln -s 12.18.2 12.18 \
-    && npm install -g lerna
+    && npm install -g lerna \
     # NOTE: Do NOT do recursive permission setup as it is already done through yarn-cache-base image
     # and slows the build
     && chmod 777 /usr/local/share/yarn-cache \
