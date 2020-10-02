@@ -107,7 +107,8 @@ RUN set -ex \
  && ln -s 5.3.0 /opt/npm/5.3 \
  && ln -s 5.4.2 /opt/npm/5.4 \
  && ln -s 5.6.0 /opt/npm/5.6 \
- && ln -s 5.6 /opt/npm/5
+ && ln -s 5.6 /opt/npm/5 \
+ && npm install --g lerna
 
 FROM main AS final
 COPY --from=intermediate /opt /opt
